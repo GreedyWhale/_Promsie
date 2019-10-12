@@ -6,20 +6,20 @@ class _Promise {
   protected resolve(args) {
     if (this.state !== "pending") return;
     this.state = "fulfilled";
-    setTimeout(() => {
+    nextTick(() => {
       this.fulfilledCallbacks.forEach(callback =>
         callback.call(undefined, args)
       );
-    }, 0);
+    });
   }
   protected reject(args) {
     if (this.state !== "pending") return;
     this.state = "rejected";
-    setTimeout(() => {
+    nextTick(() => {
       this.rejectedCallbacks.forEach(callback =>
         callback.call(undefined, args)
       );
-    }, 0);
+    });
   }
   public state: _PromiseState = "pending";
   constructor(fn) {
@@ -39,3 +39,17 @@ class _Promise {
 }
 
 export default _Promise;
+
+function nextTick(fn) {
+  if (process && typeof process.nextTick === 'function') {
+    return process.nextTick(fn);
+  }
+  let counter = 1;
+  const observer = new MutationObserver(fn);
+  const textNode = document.createTextNode(String(counter))
+  observer.observe(textNode, {
+    characterData: true
+  });
+  counter = counter + 1;
+  textNode.data = String(counter);
+}
